@@ -6,94 +6,81 @@
   <title>Admin — Ringstead Cinema</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    .admin-wrap{max-width:1100px;margin:0 auto;padding:40px 20px 70px}
+    .admin-wrap{max-width:1180px;margin:0 auto;padding:40px 20px 70px}
     .admin-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:24px;margin:20px 0}
-    .admin-login{max-width:520px;margin:50px auto}
-    .admin-card h1,.admin-card h2{margin-top:0}
-    .admin-form{display:grid;gap:14px}
-    .admin-form label{font-size:.9rem;color:#d8d2c6}
+    .admin-login{max-width:520px;margin:50px auto}.admin-card h1,.admin-card h2{margin-top:0}
+    .admin-form{display:grid;gap:14px}.admin-form label{font-size:.9rem;color:#d8d2c6}
     .admin-form input{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:#111722;color:#f4efe5;font:inherit}
-    .admin-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .admin-btn{border:0;border-radius:999px;padding:12px 18px;background:#c9a55b;color:#111722;font-weight:700;cursor:pointer}
+    .admin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .admin-btn{border:0;border-radius:999px;padding:10px 16px;background:#c9a55b;color:#111722;font-weight:700;cursor:pointer}
     .admin-btn.secondary{background:transparent;color:#f4efe5;border:1px solid rgba(255,255,255,.2)}
-    .admin-message{min-height:1.4em;color:#d9c99f}
-    .admin-hidden{display:none!important}
-    .admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+    .admin-btn.danger{background:#7f3535;color:#fff}.admin-btn.small{padding:7px 11px;font-size:.85rem}
+    .admin-message{min-height:1.4em;color:#d9c99f}.admin-hidden{display:none!important}
+    .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
     .admin-stat{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px}
-    .admin-stat strong{display:block;font-size:2rem;line-height:1.1;color:#f4efe5}
-    .admin-stat span{color:#bcb6aa;font-size:.9rem}
-    .admin-table-wrap{overflow-x:auto}
-    .admin-table{width:100%;border-collapse:collapse;min-width:760px}
+    .admin-stat strong{display:block;font-size:2rem;line-height:1.1;color:#f4efe5}.admin-stat span{color:#bcb6aa;font-size:.9rem}
+    .admin-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}.admin-note{color:#bcb6aa;font-size:.92rem}
+    .admin-table-wrap{overflow-x:auto}.admin-table{width:100%;border-collapse:collapse;min-width:920px}
     .admin-table th,.admin-table td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.1);vertical-align:top}
-    .admin-table th{color:#d9c99f;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em}
-    .seat-list{font-weight:700;letter-spacing:.04em}
-    .admin-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
-    .admin-note{color:#bcb6aa;font-size:.92rem}
-    @media(max-width:650px){.admin-stats{grid-template-columns:1fr}.admin-wrap{padding-top:25px}.admin-card{padding:18px}}
+    .admin-table th{color:#d9c99f;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em}.seat-list{font-weight:700;letter-spacing:.04em}
+    .booking-ref{font-family:monospace;font-size:.78rem;color:#aaa396}.action-row{display:flex;gap:6px;flex-wrap:wrap}
+    .seat-admin{display:grid;grid-template-columns:repeat(7,minmax(42px,58px));gap:8px;justify-content:center;margin:18px 0}
+    .seat-admin button{aspect-ratio:1;border-radius:9px;border:1px solid rgba(255,255,255,.16);background:#d9d7d1;color:#151820;font-weight:700;cursor:pointer}
+    .seat-admin button.reserved{background:#4a4e55;color:#aeb1b7;cursor:not-allowed}.seat-admin button.current{outline:3px solid #c9a55b;outline-offset:1px}
+    .seat-admin button.selected{background:#c9a55b;color:#111722}.seat-admin button:disabled{opacity:.65}
+    .seat-admin-label{grid-column:1/-1;color:#d9c99f;text-align:center;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+    .screen-bar{max-width:430px;margin:0 auto 12px;padding:8px;text-align:center;background:#202631;border-radius:7px;color:#aaaeb5;font-size:.75rem;letter-spacing:.18em}
+    .admin-legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;color:#bcb6aa;font-size:.85rem}.legend-dot{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px;background:#d9d7d1}.legend-dot.res{background:#4a4e55}.legend-dot.sel{background:#c9a55b}
+    .admin-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .admin-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:#111722;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:24px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+    .modal-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.modal-close{border:0;background:none;color:#eee;font-size:1.6rem;cursor:pointer}
+    .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.modal-grid .full{grid-column:1/-1}
+    @media(max-width:750px){.admin-stats{grid-template-columns:1fr 1fr}.modal-grid{grid-template-columns:1fr}.modal-grid .full{grid-column:auto}}
+    @media(max-width:500px){.admin-stats{grid-template-columns:1fr}.admin-wrap{padding-top:25px}.admin-card{padding:18px}.seat-admin{gap:5px}.seat-admin button{font-size:.78rem}}
   </style>
 </head>
 <body>
 <header class="site-header">
-  <div class="container nav-wrap">
-    <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Ringstead Cinema</span></a>
-  </div>
+  <div class="container nav-wrap"><a class="brand" href="index.html"><span class="brand-mark">R</span><span>Ringstead Cinema</span></a></div>
 </header>
 
 <main class="admin-wrap">
   <section id="login-card" class="admin-card admin-login">
-    <p class="eyebrow">Private area</p>
-    <h1>Cinema Admin</h1>
-    <p class="admin-note">Sign in to view Ringstead Cinema reservations.</p>
+    <p class="eyebrow">Private area</p><h1>Cinema Admin</h1>
+    <p class="admin-note">Sign in to manage Ringstead Cinema reservations.</p>
     <form id="login-form" class="admin-form">
-      <div>
-        <label for="email">Email address</label>
-        <input id="email" name="email" type="email" value="rick@prestonmail.co.uk" autocomplete="username" required>
-      </div>
-      <div>
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-      </div>
-      <div class="admin-actions">
-        <button class="admin-btn" type="submit">Sign in</button>
-      </div>
+      <div><label for="email">Email address</label><input id="email" type="email" value="rick@prestonmail.co.uk" autocomplete="username" required></div>
+      <div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <div class="admin-actions"><button class="admin-btn" type="submit">Sign in</button></div>
       <p id="login-message" class="admin-message" role="status"></p>
     </form>
   </section>
 
   <section id="dashboard" class="admin-hidden">
     <div class="admin-top">
-      <div>
-        <p class="eyebrow">Private area</p>
-        <h1>Bookings</h1>
-        <p id="screening-info" class="admin-note"></p>
-      </div>
-      <div class="admin-actions">
-        <button id="refresh" class="admin-btn secondary" type="button">Refresh</button>
-        <button id="signout" class="admin-btn secondary" type="button">Sign out</button>
-      </div>
+      <div><p class="eyebrow">Private area</p><h1>Cinema Control</h1><p id="screening-info" class="admin-note"></p></div>
+      <div class="admin-actions"><button id="refresh" class="admin-btn secondary">Refresh</button><button id="signout" class="admin-btn secondary">Sign out</button></div>
     </div>
 
     <div class="admin-stats">
       <div class="admin-stat"><strong id="booked-count">—</strong><span>seats booked</span></div>
       <div class="admin-stat"><strong id="available-count">—</strong><span>seats available</span></div>
       <div class="admin-stat"><strong id="booking-count">—</strong><span>bookings</span></div>
+      <div class="admin-stat"><strong id="income-count">—</strong><span>expected at door</span></div>
     </div>
 
     <div class="admin-card">
-      <div class="admin-top">
-        <div><h2>Reservations</h2><p class="admin-note">Each booking is shown once, with its reserved seats grouped together.</p></div>
-      </div>
+      <div class="admin-top"><div><h2>Bookings</h2><p class="admin-note">Manage customer details, move seats or cancel a booking.</p></div></div>
       <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>Seats</th><th>Name</th><th>Email</th><th>Phone</th><th>Booked</th></tr></thead>
-          <tbody id="bookings-body"><tr><td colspan="5">Loading…</td></tr></tbody>
-        </table>
+        <table class="admin-table"><thead><tr><th>Seats</th><th>Customer</th><th>Contact</th><th>Booked</th><th>Actions</th></tr></thead>
+        <tbody id="bookings-body"><tr><td colspan="5">Loading…</td></tr></tbody></table>
       </div>
       <p id="dashboard-message" class="admin-message" role="status"></p>
     </div>
   </section>
 </main>
 
+<div id="modal-root" class="admin-hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script>
@@ -102,64 +89,70 @@
   const ADMIN_EMAIL = 'rick@prestonmail.co.uk';
   const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
   const $ = id => document.getElementById(id);
-  const loginCard = $('login-card'), dashboard = $('dashboard');
+  let currentScreening = null;
+  let reservations = [];
+  let bookings = [];
+
+  function msg(text){ $('dashboard-message').textContent=text||''; }
+  function loginMsg(text){ $('login-message').textContent=text||''; }
+  function esc(v){ const d=document.createElement('div'); d.textContent=v ?? ''; return d.innerHTML; }
+  function money(v){ return '£' + Number(v).toFixed(2); }
+  function dateTime(v){ return new Date(v).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 
   async function showSession(){
-    const {data:{session}} = await supabase.auth.getSession();
-    if(session && session.user?.email?.toLowerCase() === ADMIN_EMAIL){
-      loginCard.classList.add('admin-hidden'); dashboard.classList.remove('admin-hidden'); await loadBookings();
-    } else if(session){
-      await supabase.auth.signOut(); showLoginMessage('This account is not authorised for the cinema admin area.');
-    }
+    const {data:{session}}=await supabase.auth.getSession();
+    if(session && session.user?.email?.toLowerCase()===ADMIN_EMAIL){
+      $('login-card').classList.add('admin-hidden'); $('dashboard').classList.remove('admin-hidden'); await loadBookings();
+    } else if(session){ await supabase.auth.signOut(); loginMsg('This account is not authorised for the cinema admin area.'); }
   }
-
-  function showLoginMessage(text){ $('login-message').textContent = text || ''; }
-  function showDashboardMessage(text){ $('dashboard-message').textContent = text || ''; }
-
-  $('login-form').addEventListener('submit', async e => {
-    e.preventDefault(); showLoginMessage('Signing in…');
-    const email = $('email').value.trim().toLowerCase();
-    const password = $('password').value;
-    if(email !== ADMIN_EMAIL){ showLoginMessage('Please use the cinema admin email address.'); return; }
-    const {error} = await supabase.auth.signInWithPassword({email,password});
-    if(error){ showLoginMessage(error.message); return; }
-    showLoginMessage(''); await showSession();
-  });
-
-  $('signout').addEventListener('click', async () => { await supabase.auth.signOut(); dashboard.classList.add('admin-hidden'); loginCard.classList.remove('admin-hidden'); $('password').value=''; });
-  $('refresh').addEventListener('click', loadBookings);
 
   async function loadBookings(){
-    showDashboardMessage('Loading…');
-    const {data:screenings,error:screeningError} = await supabase.from('screenings').select('id,film_title,screening_date,start_time,ticket_price,capacity').eq('id',config.screeningId).single();
-    if(screeningError){ showDashboardMessage(screeningError.message); return; }
-    const {data,error} = await supabase.from('reservations').select('id,seat_id,name,email,phone,created_at').eq('screening_id',config.screeningId).order('created_at',{ascending:true}).order('seat_id',{ascending:true});
-    if(error){ showDashboardMessage(error.message); return; }
-
-    $('screening-info').textContent = `${screenings.film_title} · ${new Date(screenings.screening_date + 'T00:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · ${String(screenings.start_time).slice(0,5)}`;
-    const groups = new Map();
-    for(const r of (data || [])){
-      if(!groups.has(r.id)) groups.set(r.id,{...r,seats:[]});
-      groups.get(r.id).seats.push(r.seat_id);
-    }
-    const bookings = [...groups.values()];
-    const booked = data?.length || 0;
-    $('booked-count').textContent = booked;
-    $('available-count').textContent = Math.max(0, screenings.capacity - booked);
-    $('booking-count').textContent = bookings.length;
-    const body = $('bookings-body'); body.innerHTML='';
-    if(!bookings.length){ body.innerHTML='<tr><td colspan="5">No reservations yet.</td></tr>'; }
-    else bookings.forEach(b => {
-      const tr=document.createElement('tr');
-      const dt=new Date(b.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      tr.innerHTML=`<td class="seat-list">${b.seats.join(', ')}</td><td>${esc(b.name)}</td><td>${esc(b.email)}</td><td>${esc(b.phone || '')}</td><td>${dt}</td>`;
-      body.appendChild(tr);
-    });
-    showDashboardMessage(`Last refreshed ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}.`);
+    msg('Loading…');
+    const {data:s,error:se}=await supabase.from('screenings').select('id,film_title,screening_date,start_time,ticket_price,capacity').eq('id',config.screeningId).single();
+    if(se){msg(se.message);return;} currentScreening=s;
+    const {data,error}=await supabase.from('reservations').select('id,booking_id,seat_id,name,email,phone,created_at').eq('screening_id',config.screeningId).order('created_at',{ascending:true}).order('seat_id',{ascending:true});
+    if(error){msg(error.message);return;} reservations=data||[];
+    const groups=new Map();
+    reservations.forEach(r=>{ if(!groups.has(r.booking_id)) groups.set(r.booking_id,{booking_id:r.booking_id,name:r.name,email:r.email,phone:r.phone,created_at:r.created_at,seats:[]}); groups.get(r.booking_id).seats.push(r.seat_id); });
+    bookings=[...groups.values()];
+    const booked=reservations.length;
+    $('screening-info').textContent=`${s.film_title} · ${new Date(s.screening_date+'T00:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · ${String(s.start_time).slice(0,5)}`;
+    $('booked-count').textContent=booked; $('available-count').textContent=Math.max(0,s.capacity-booked); $('booking-count').textContent=bookings.length; $('income-count').textContent=money(booked*s.ticket_price);
+    const body=$('bookings-body'); body.innerHTML='';
+    if(!bookings.length){body.innerHTML='<tr><td colspan="5">No reservations yet.</td></tr>';}
+    bookings.forEach(b=>{const tr=document.createElement('tr');tr.innerHTML=`<td><div class="seat-list">${b.seats.join(', ')}</div><div class="booking-ref">${esc(b.booking_id)}</div></td><td><strong>${esc(b.name)}</strong></td><td>${esc(b.email)}<br>${esc(b.phone)}</td><td>${dateTime(b.created_at)}</td><td><div class="action-row"><button class="admin-btn small secondary" data-action="edit" data-id="${b.booking_id}">Edit</button><button class="admin-btn small secondary" data-action="seats" data-id="${b.booking_id}">Seats</button><button class="admin-btn small danger" data-action="cancel" data-id="${b.booking_id}">Cancel</button></div></td>`;body.appendChild(tr);});
+    msg(`Last refreshed ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}.`);
   }
-  function esc(value){const d=document.createElement('div');d.textContent=value ?? '';return d.innerHTML;}
-  supabase.auth.onAuthStateChange((_event, session) => { if(session) showSession(); });
-  showSession();
+
+  function bookingById(id){return bookings.find(b=>b.booking_id===id);}
+  function openModal(html){$('modal-root').innerHTML=`<div class="admin-modal-backdrop"><div class="admin-modal">${html}</div></div>`;$('modal-root').classList.remove('admin-hidden');document.querySelector('.modal-close')?.addEventListener('click',closeModal);document.querySelector('.admin-modal-backdrop')?.addEventListener('click',e=>{if(e.target.classList.contains('admin-modal-backdrop'))closeModal();});}
+  function closeModal(){$('modal-root').classList.add('admin-hidden');$('modal-root').innerHTML='';}
+
+  function openEdit(id){
+    const b=bookingById(id); if(!b)return;
+    openModal(`<div class="modal-head"><div><p class="eyebrow">Booking</p><h2>Edit customer details</h2><p class="admin-note">Seats: ${esc(b.seats.join(', '))}</p></div><button class="modal-close" aria-label="Close">×</button></div><form id="edit-form" class="admin-form"><div class="modal-grid"><div><label for="edit-name">Name</label><input id="edit-name" value="${esc(b.name)}" required></div><div><label for="edit-phone">Phone</label><input id="edit-phone" value="${esc(b.phone||'')}"></div><div class="full"><label for="edit-email">Email</label><input id="edit-email" type="email" value="${esc(b.email)}" required></div></div><div class="admin-actions"><button class="admin-btn" type="submit">Save changes</button><button class="admin-btn secondary" type="button" id="edit-cancel">Cancel</button></div><p id="modal-message" class="admin-message"></p></form>`);
+    $('edit-cancel').onclick=closeModal; $('edit-form').onsubmit=async e=>{e.preventDefault();$('modal-message').textContent='Saving…';const {data,error}=await supabase.rpc('admin_update_booking',{p_booking_id:id,p_name:$('edit-name').value.trim(),p_email:$('edit-email').value.trim(),p_phone:$('edit-phone').value.trim()});if(error){$('modal-message').textContent=error.message;return;}if(!data?.success){$('modal-message').textContent=data?.message||'Update failed.';return;}closeModal();await loadBookings();};
+  }
+
+  function openSeats(id){
+    const b=bookingById(id); if(!b)return; const selected=new Set(b.seats);
+    const allReserved=new Set(reservations.map(r=>r.seat_id));
+    let buttons=''; for(let row of ['A','B','C','D','E']){buttons+=`<div class="seat-admin-label">Row ${row}</div>`;for(let n=1;n<=7;n++){const seat=row+n;const isCurrent=selected.has(seat);const taken=allReserved.has(seat)&&!isCurrent;buttons+=`<button type="button" data-seat="${seat}" class="${taken?'reserved ':''}${isCurrent?'current selected':''}" ${taken?'disabled':''}>${seat}</button>`;}}
+    openModal(`<div class="modal-head"><div><p class="eyebrow">Booking</p><h2>Change seats</h2><p class="admin-note">Select exactly ${b.seats.length} seats. Current: ${esc(b.seats.join(', '))}</p></div><button class="modal-close" aria-label="Close">×</button></div><div class="screen-bar">SCREEN</div><div id="seat-picker" class="seat-admin">${buttons}</div><div class="admin-legend"><span><i class="legend-dot"></i>Available</span><span><i class="legend-dot sel"></i>Selected</span><span><i class="legend-dot res"></i>Booked</span></div><div class="admin-actions" style="margin-top:20px"><button id="save-seats" class="admin-btn">Save seats</button><button id="seat-cancel" class="admin-btn secondary">Cancel</button></div><p id="modal-message" class="admin-message"></p>`);
+    const picker=$('seat-picker'); picker.querySelectorAll('button[data-seat]').forEach(btn=>btn.onclick=()=>{const seat=btn.dataset.seat;if(selected.has(seat)){selected.delete(seat);btn.classList.remove('selected');}else{if(selected.size>=b.seats.length){$('modal-message').textContent=`This booking has ${b.seats.length} seat${b.seats.length===1?'':'s'}. Deselect one first.`;return;}selected.add(seat);btn.classList.add('selected');}$('modal-message').textContent=`${selected.size} of ${b.seats.length} seats selected.`;});
+    $('seat-cancel').onclick=closeModal; $('save-seats').onclick=async()=>{if(selected.size!==b.seats.length){$('modal-message').textContent=`Please select exactly ${b.seats.length} seats.`;return;}$('modal-message').textContent='Saving…';const {data,error}=await supabase.rpc('admin_change_seats',{p_booking_id:id,p_seat_ids:[...selected]});if(error){$('modal-message').textContent=error.message;return;}if(!data?.success){$('modal-message').textContent=data?.message||'Seat change failed.';return;}closeModal();await loadBookings();};
+  }
+
+  async function cancelBooking(id){
+    const b=bookingById(id); if(!b)return;
+    if(!confirm(`Cancel the booking for ${b.name} (${b.seats.join(', ')})?\n\nThis will release the seats for other customers.`))return;
+    msg('Cancelling booking…');const {data,error}=await supabase.rpc('admin_cancel_booking',{p_booking_id:id});if(error){msg(error.message);return;}if(!data?.success){msg(data?.message||'Cancellation failed.');return;}await loadBookings();
+  }
+
+  $('bookings-body').addEventListener('click',e=>{const btn=e.target.closest('button[data-action]');if(!btn)return;const id=btn.dataset.id;if(btn.dataset.action==='edit')openEdit(id);if(btn.dataset.action==='seats')openSeats(id);if(btn.dataset.action==='cancel')cancelBooking(id);});
+  $('login-form').addEventListener('submit',async e=>{e.preventDefault();loginMsg('Signing in…');const email=$('email').value.trim().toLowerCase();if(email!==ADMIN_EMAIL){loginMsg('Please use the cinema admin email address.');return;}const {error}=await supabase.auth.signInWithPassword({email,password:$('password').value});if(error){loginMsg(error.message);return;}loginMsg('');await showSession();});
+  $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';}; $('refresh').onclick=loadBookings;
+  supabase.auth.onAuthStateChange((_event,session)=>{if(session)showSession();}); showSession();
 })();
 </script>
 </body>
