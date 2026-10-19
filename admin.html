@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Ringstead Cinema</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-wrap{max-width:1100px;margin:0 auto;padding:40px 20px 70px}
+    .admin-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:18px;padding:24px;margin:20px 0}
+    .admin-login{max-width:520px;margin:50px auto}
+    .admin-card h1,.admin-card h2{margin-top:0}
+    .admin-form{display:grid;gap:14px}
+    .admin-form label{font-size:.9rem;color:#d8d2c6}
+    .admin-form input{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:#111722;color:#f4efe5;font:inherit}
+    .admin-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .admin-btn{border:0;border-radius:999px;padding:12px 18px;background:#c9a55b;color:#111722;font-weight:700;cursor:pointer}
+    .admin-btn.secondary{background:transparent;color:#f4efe5;border:1px solid rgba(255,255,255,.2)}
+    .admin-message{min-height:1.4em;color:#d9c99f}
+    .admin-hidden{display:none!important}
+    .admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+    .admin-stat{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px}
+    .admin-stat strong{display:block;font-size:2rem;line-height:1.1;color:#f4efe5}
+    .admin-stat span{color:#bcb6aa;font-size:.9rem}
+    .admin-table-wrap{overflow-x:auto}
+    .admin-table{width:100%;border-collapse:collapse;min-width:760px}
+    .admin-table th,.admin-table td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.1);vertical-align:top}
+    .admin-table th{color:#d9c99f;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em}
+    .seat-list{font-weight:700;letter-spacing:.04em}
+    .admin-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+    .admin-note{color:#bcb6aa;font-size:.92rem}
+    @media(max-width:650px){.admin-stats{grid-template-columns:1fr}.admin-wrap{padding-top:25px}.admin-card{padding:18px}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Ringstead Cinema</span></a>
+  </div>
+</header>
+
+<main class="admin-wrap">
+  <section id="login-card" class="admin-card admin-login">
+    <p class="eyebrow">Private area</p>
+    <h1>Cinema Admin</h1>
+    <p class="admin-note">Sign in to view Ringstead Cinema reservations.</p>
+    <form id="login-form" class="admin-form">
+      <div>
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" value="rick@prestonmail.co.uk" autocomplete="username" required>
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="admin-actions">
+        <button class="admin-btn" type="submit">Sign in</button>
+      </div>
+      <p id="login-message" class="admin-message" role="status"></p>
+    </form>
+  </section>
+
+  <section id="dashboard" class="admin-hidden">
+    <div class="admin-top">
+      <div>
+        <p class="eyebrow">Private area</p>
+        <h1>Bookings</h1>
+        <p id="screening-info" class="admin-note"></p>
+      </div>
+      <div class="admin-actions">
+        <button id="refresh" class="admin-btn secondary" type="button">Refresh</button>
+        <button id="signout" class="admin-btn secondary" type="button">Sign out</button>
+      </div>
+    </div>
+
+    <div class="admin-stats">
+      <div class="admin-stat"><strong id="booked-count">—</strong><span>seats booked</span></div>
+      <div class="admin-stat"><strong id="available-count">—</strong><span>seats available</span></div>
+      <div class="admin-stat"><strong id="booking-count">—</strong><span>bookings</span></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-top">
+        <div><h2>Reservations</h2><p class="admin-note">Each booking is shown once, with its reserved seats grouped together.</p></div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Seats</th><th>Name</th><th>Email</th><th>Phone</th><th>Booked</th></tr></thead>
+          <tbody id="bookings-body"><tr><td colspan="5">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <p id="dashboard-message" class="admin-message" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  const config = window.RINGSTEAD_CONFIG || {};
+  const ADMIN_EMAIL = 'rick@prestonmail.co.uk';
+  const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+  const $ = id => document.getElementById(id);
+  const loginCard = $('login-card'), dashboard = $('dashboard');
+
+  async function showSession(){
+    const {data:{session}} = await supabase.auth.getSession();
+    if(session && session.user?.email?.toLowerCase() === ADMIN_EMAIL){
+      loginCard.classList.add('admin-hidden'); dashboard.classList.remove('admin-hidden'); await loadBookings();
+    } else if(session){
+      await supabase.auth.signOut(); showLoginMessage('This account is not authorised for the cinema admin area.');
+    }
+  }
+
+  function showLoginMessage(text){ $('login-message').textContent = text || ''; }
+  function showDashboardMessage(text){ $('dashboard-message').textContent = text || ''; }
+
+  $('login-form').addEventListener('submit', async e => {
+    e.preventDefault(); showLoginMessage('Signing in…');
+    const email = $('email').value.trim().toLowerCase();
+    const password = $('password').value;
+    if(email !== ADMIN_EMAIL){ showLoginMessage('Please use the cinema admin email address.'); return; }
+    const {error} = await supabase.auth.signInWithPassword({email,password});
+    if(error){ showLoginMessage(error.message); return; }
+    showLoginMessage(''); await showSession();
+  });
+
+  $('signout').addEventListener('click', async () => { await supabase.auth.signOut(); dashboard.classList.add('admin-hidden'); loginCard.classList.remove('admin-hidden'); $('password').value=''; });
+  $('refresh').addEventListener('click', loadBookings);
+
+  async function loadBookings(){
+    showDashboardMessage('Loading…');
+    const {data:screenings,error:screeningError} = await supabase.from('screenings').select('id,film_title,screening_date,start_time,ticket_price,capacity').eq('id',config.screeningId).single();
+    if(screeningError){ showDashboardMessage(screeningError.message); return; }
+    const {data,error} = await supabase.from('reservations').select('id,seat_id,name,email,phone,created_at').eq('screening_id',config.screeningId).order('created_at',{ascending:true}).order('seat_id',{ascending:true});
+    if(error){ showDashboardMessage(error.message); return; }
+
+    $('screening-info').textContent = `${screenings.film_title} · ${new Date(screenings.screening_date + 'T00:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · ${String(screenings.start_time).slice(0,5)}`;
+    const groups = new Map();
+    for(const r of (data || [])){
+      if(!groups.has(r.id)) groups.set(r.id,{...r,seats:[]});
+      groups.get(r.id).seats.push(r.seat_id);
+    }
+    const bookings = [...groups.values()];
+    const booked = data?.length || 0;
+    $('booked-count').textContent = booked;
+    $('available-count').textContent = Math.max(0, screenings.capacity - booked);
+    $('booking-count').textContent = bookings.length;
+    const body = $('bookings-body'); body.innerHTML='';
+    if(!bookings.length){ body.innerHTML='<tr><td colspan="5">No reservations yet.</td></tr>'; }
+    else bookings.forEach(b => {
+      const tr=document.createElement('tr');
+      const dt=new Date(b.created_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      tr.innerHTML=`<td class="seat-list">${b.seats.join(', ')}</td><td>${esc(b.name)}</td><td>${esc(b.email)}</td><td>${esc(b.phone || '')}</td><td>${dt}</td>`;
+      body.appendChild(tr);
+    });
+    showDashboardMessage(`Last refreshed ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}.`);
+  }
+  function esc(value){const d=document.createElement('div');d.textContent=value ?? '';return d.innerHTML;}
+  supabase.auth.onAuthStateChange((_event, session) => { if(session) showSession(); });
+  showSession();
+})();
+</script>
+</body>
+</html>
