@@ -52,18 +52,100 @@
     $('#back-to-seats').addEventListener('click',()=>{$('#booking-form').classList.add('hidden');$('#reserve').scrollIntoView({behavior:'smooth'});});
     $('#booking-form').addEventListener('submit',submitBooking);
   }
-  async function submitBooking(ev){
-    ev.preventDefault(); if(!selected.size)return; const form=ev.currentTarget; const fd=new FormData(form); const msg=$('#form-message'); msg.textContent='Making your reservation…';
-    try{
-      const chosen=Array.from(selected).sort();
-      if(isLive()){
-        const {data,error}=await client.rpc('reserve_seats',{p_screening_id:config.screeningId,p_seat_ids:chosen,p_name:fd.get('name'),p_email:fd.get('email'),p_phone:fd.get('phone')});
-        if(error) throw error; if(!data?.success) throw new Error(data?.message||'Those seats are no longer available.');
-      }else{
-        const now=new Set(JSON.parse(localStorage.getItem(demoKey)||'[]')); for(const s of chosen)now.add(s);localStorage.setItem(demoKey,JSON.stringify([...now]));
+async function submitBooking(ev) {
+  ev.preventDefault();
+  if (!selected.size) return;
+
+  const form = ev.currentTarget;
+  const fd = new FormData(form);
+  const msg = $('#form-message');
+
+  msg.textContent = 'Making your reservation…';
+
+  try {
+    const chosen = Array.from(selected).sort();
+    let bookingId = null;
+
+    if (isLive()) {
+      const { data, error } = await client.rpc('reserve_seats', {
+        p_screening_id: config.screeningId,
+        p_seat_ids: chosen,
+        p_name: fd.get('name'),
+        p_email: fd.get('email'),
+        p_phone: fd.get('phone')
+      });
+
+      if (error) throw error;
+
+      if (!data?.success) {
+        throw new Error(
+          data?.message || 'Those seats are no longer available.'
+        );
       }
-      msg.textContent=`Reservation confirmed for ${chosen.join(', ')}. Please pay £${chosen.length*5} on arrival.`; selected.clear(); form.reset(); await refresh();
-    }catch(e){msg.textContent=e.message||'Sorry, the reservation could not be completed. Please try again.'; await refresh();}
+
+      bookingId = data.booking_id;
+
+      // The reservation has succeeded. Send the confirmation email.
+      // An email failure must NOT make a successful booking look like a failure.
+      if (bookingId) {
+        try {
+          const emailResponse = await fetch(
+            `${config.supabaseUrl}/functions/v1/send-booking-confirmation`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': config.supabaseAnonKey
+              },
+              body: JSON.stringify({
+                booking_id: bookingId
+              })
+            }
+          );
+
+          const emailResult = await emailResponse.json();
+
+          if (!emailResponse.ok || !emailResult?.success) {
+            console.error(
+              'Booking confirmation email failed:',
+              emailResult
+            );
+          }
+        } catch (emailError) {
+          console.error(
+            'Booking confirmation email failed:',
+            emailError
+          );
+        }
+      }
+    } else {
+      const now = new Set(
+        JSON.parse(localStorage.getItem(demoKey) || '[]')
+      );
+
+      for (const s of chosen) now.add(s);
+
+      localStorage.setItem(
+        demoKey,
+        JSON.stringify([...now])
+      );
+    }
+
+    msg.textContent =
+      `Reservation confirmed for ${chosen.join(', ')}. Please pay £${chosen.length * 5} on arrival.`;
+
+    selected.clear();
+    form.reset();
+
+    await refresh();
+
+  } catch (e) {
+    msg.textContent =
+      e.message ||
+      'Sorry, the reservation could not be completed. Please try again.';
+
+    await refresh();
   }
+}
   window.addEventListener('DOMContentLoaded',init);
 })();
