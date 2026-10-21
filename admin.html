@@ -373,7 +373,9 @@ $('bookings-body').addEventListener('click',e=>{
   if(btn.dataset.action==='cancel')cancelBooking(id);
 });
   $('login-form').addEventListener('submit',async e=>{e.preventDefault();loginMsg('Signing in…');const email=$('email').value.trim().toLowerCase();if(email!==ADMIN_EMAIL){loginMsg('Please use the cinema admin email address.');return;}const {error}=await supabase.auth.signInWithPassword({email,password:$('password').value});if(error){loginMsg(error.message);return;}loginMsg('');await showSession();});
-  $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';}; $('refresh').onclick=loadBookings;
+  $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';};
+  $('refresh').onclick=loadBookings;
+  $('print-cards').onclick=printReservedCards;
   supabase.auth.onAuthStateChange((_event,session)=>{if(session)showSession();}); showSession();
 })();
 </script>
