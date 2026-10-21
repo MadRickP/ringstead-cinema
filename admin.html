@@ -183,6 +183,137 @@ bookings.forEach(b=>{
     $('seat-cancel').onclick=closeModal; $('save-seats').onclick=async()=>{if(selected.size!==b.seats.length){$('modal-message').textContent=`Please select exactly ${b.seats.length} seats.`;return;}$('modal-message').textContent='Saving…';const {data,error}=await supabase.rpc('admin_change_seats',{p_booking_id:id,p_seat_ids:[...selected]});if(error){$('modal-message').textContent=error.message;return;}if(!data?.success){$('modal-message').textContent=data?.message||'Seat change failed.';return;}closeModal();await loadBookings();};
   }
 
+function printReservedCards() {
+  if (!reservations.length) {
+    alert("There are no reserved seats to print.");
+    return;
+  }
+
+  const sortedReservations = [...reservations].sort((a, b) => {
+    const aMatch = a.seat_id.match(/^([A-E])(\d+)$/);
+    const bMatch = b.seat_id.match(/^([A-E])(\d+)$/);
+
+    if (!aMatch || !bMatch) {
+      return a.seat_id.localeCompare(b.seat_id);
+    }
+
+    const rowCompare = aMatch[1].localeCompare(bMatch[1]);
+
+    if (rowCompare !== 0) {
+      return rowCompare;
+    }
+
+    return Number(aMatch[2]) - Number(bMatch[2]);
+  });
+
+  const cards = sortedReservations.map(reservation => `
+    <div class="reserved-card">
+      <div class="reserved-label">RESERVED</div>
+      <div class="reserved-film">${esc(currentScreening.film_title)}</div>
+      <div class="reserved-name">${esc(reservation.name)}</div>
+      <div class="reserved-seat">${esc(reservation.seat_id)}</div>
+    </div>
+  `).join("");
+
+  const printWindow = window.open("", "_blank");
+
+  if (!printWindow) {
+    alert("The print window could not be opened. Please allow pop-ups for this site.");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Reserved Cards - ${esc(currentScreening.film_title)}</title>
+
+      <style>
+        @page {
+          size: A4;
+          margin: 12mm;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          background: #ffffff;
+          color: #111111;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .cards {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8mm;
+        }
+
+        .reserved-card {
+          height: 60mm;
+          border: 1.5px solid #222222;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 8mm;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        .reserved-label {
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          margin-bottom: 7px;
+        }
+
+        .reserved-film {
+          font-size: 17px;
+          font-weight: 700;
+          line-height: 1.2;
+          margin-bottom: 8px;
+        }
+
+        .reserved-name {
+          font-size: 17px;
+          line-height: 1.2;
+          margin-bottom: 8px;
+        }
+
+        .reserved-seat {
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 1;
+        }
+      </style>
+    </head>
+
+    <body>
+      <div class="cards">
+        ${cards}
+      </div>
+
+      <script>
+        window.addEventListener("load", () => {
+          setTimeout(() => {
+            window.print();
+          }, 250);
+        });
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+}
+
+
  async function resendBooking(id){
   const b=bookingById(id);
   if(!b)return;
