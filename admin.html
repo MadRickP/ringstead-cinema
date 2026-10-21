@@ -120,7 +120,47 @@
     $('booked-count').textContent=booked; $('available-count').textContent=Math.max(0,s.capacity-booked); $('booking-count').textContent=bookings.length; $('income-count').textContent=money(booked*s.ticket_price);
     const body=$('bookings-body'); body.innerHTML='';
     if(!bookings.length){body.innerHTML='<tr><td colspan="5">No reservations yet.</td></tr>';}
-    bookings.forEach(b=>{const tr=document.createElement('tr');tr.innerHTML=`<td><div class="seat-list">${b.seats.join(', ')}</div><div class="booking-ref">${esc(b.booking_id)}</div></td><td><strong>${esc(b.name)}</strong></td><td>${esc(b.email)}<br>${esc(b.phone)}</td><td>${dateTime(b.created_at)}</td><td><div class="action-row"><button class="admin-btn small secondary" data-action="edit" data-id="${b.booking_id}">Edit</button><button class="admin-btn small secondary" data-action="seats" data-id="${b.booking_id}">Seats</button><button class="admin-btn small danger" data-action="cancel" data-id="${b.booking_id}">Cancel</button></div></td>`;body.appendChild(tr);});
+bookings.forEach(b=>{
+  const tr=document.createElement('tr');
+
+  tr.innerHTML=`
+    <td>
+      <div class="seat-list">${b.seats.join(', ')}</div>
+      <div class="booking-ref">${esc(b.booking_id)}</div>
+    </td>
+    <td><strong>${esc(b.name)}</strong></td>
+    <td>${esc(b.email)}<br>${esc(b.phone)}</td>
+    <td>${dateTime(b.created_at)}</td>
+    <td>
+      <div class="action-row">
+        <button class="admin-btn small secondary"
+          data-action="edit"
+          data-id="${b.booking_id}">
+          Edit
+        </button>
+
+        <button class="admin-btn small secondary"
+          data-action="seats"
+          data-id="${b.booking_id}">
+          Seats
+        </button>
+
+        <button class="admin-btn small secondary"
+          data-action="resend"
+          data-id="${b.booking_id}">
+          Resend
+        </button>
+
+        <button class="admin-btn small danger"
+          data-action="cancel"
+          data-id="${b.booking_id}">
+          Cancel
+        </button>
+      </div>
+    </td>`;
+
+  body.appendChild(tr);
+});
     msg(`Last refreshed ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}.`);
   }
 
@@ -143,13 +183,64 @@
     $('seat-cancel').onclick=closeModal; $('save-seats').onclick=async()=>{if(selected.size!==b.seats.length){$('modal-message').textContent=`Please select exactly ${b.seats.length} seats.`;return;}$('modal-message').textContent='Saving…';const {data,error}=await supabase.rpc('admin_change_seats',{p_booking_id:id,p_seat_ids:[...selected]});if(error){$('modal-message').textContent=error.message;return;}if(!data?.success){$('modal-message').textContent=data?.message||'Seat change failed.';return;}closeModal();await loadBookings();};
   }
 
+ async function resendBooking(id){
+  const b=bookingById(id);
+  if(!b)return;
+
+  if(!confirm(
+    `Resend booking confirmation?\n\n` +
+    `This will send the confirmation email to:\n${b.email}`
+  ))return;
+
+  msg('Sending confirmation email…');
+
+  try{
+    const response=await fetch(
+      `${config.supabaseUrl}/functions/v1/send-booking-confirmation`,
+      {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':config.supabaseAnonKey
+        },
+        body:JSON.stringify({
+          booking_id:id
+        })
+      }
+    );
+
+    const result=await response.json();
+
+    if(!response.ok || !result?.success){
+      throw new Error(
+        result?.message || 'The confirmation email could not be sent.'
+      );
+    }
+
+    msg(`Confirmation email sent to ${b.email}.`);
+
+  }catch(e){
+    msg(`Email failed: ${e.message}`);
+  }
+} 
+  
   async function cancelBooking(id){
     const b=bookingById(id); if(!b)return;
     if(!confirm(`Cancel the booking for ${b.name} (${b.seats.join(', ')})?\n\nThis will release the seats for other customers.`))return;
     msg('Cancelling booking…');const {data,error}=await supabase.rpc('admin_cancel_booking',{p_booking_id:id});if(error){msg(error.message);return;}if(!data?.success){msg(data?.message||'Cancellation failed.');return;}await loadBookings();
   }
 
-  $('bookings-body').addEventListener('click',e=>{const btn=e.target.closest('button[data-action]');if(!btn)return;const id=btn.dataset.id;if(btn.dataset.action==='edit')openEdit(id);if(btn.dataset.action==='seats')openSeats(id);if(btn.dataset.action==='cancel')cancelBooking(id);});
+$('bookings-body').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-action]');
+  if(!btn)return;
+
+  const id=btn.dataset.id;
+
+  if(btn.dataset.action==='edit')openEdit(id);
+  if(btn.dataset.action==='seats')openSeats(id);
+  if(btn.dataset.action==='resend')resendBooking(id);
+  if(btn.dataset.action==='cancel')cancelBooking(id);
+});
   $('login-form').addEventListener('submit',async e=>{e.preventDefault();loginMsg('Signing in…');const email=$('email').value.trim().toLowerCase();if(email!==ADMIN_EMAIL){loginMsg('Please use the cinema admin email address.');return;}const {error}=await supabase.auth.signInWithPassword({email,password:$('password').value});if(error){loginMsg(error.message);return;}loginMsg('');await showSession();});
   $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';}; $('refresh').onclick=loadBookings;
   supabase.auth.onAuthStateChange((_event,session)=>{if(session)showSession();}); showSession();
