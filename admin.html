@@ -68,7 +68,39 @@
       <div class="admin-stat"><strong id="booking-count">—</strong><span>bookings</span></div>
       <div class="admin-stat"><strong id="income-count">—</strong><span>expected at door</span></div>
     </div>
+    <div class="admin-card">
+      <div class="admin-top">
+        <div>
+          <h2>Online Reservations</h2>
+          <p class="admin-note">
+            Control when customers can reserve seats online.
+          </p>
+        </div>
+      </div>
 
+      <p id="reservation-control-status" class="admin-message">
+        Checking reservation settings…
+      </p>
+
+      <div class="admin-actions">
+        <button id="reservations-open" class="admin-btn">
+          Open Reservations
+        </button>
+
+        <button id="reservations-close" class="admin-btn danger">
+          Close Reservations
+        </button>
+
+        <button id="reservations-auto" class="admin-btn secondary">
+          Return to Automatic
+        </button>
+      </div>
+
+      <p class="admin-note">
+        Automatic mode closes online reservations at noon on the day
+        of the screening.
+      </p>
+    </div>
     <div class="admin-card">
       <div class="admin-top"><div><h2>Bookings</h2><p class="admin-note">Manage customer details, move seats or cancel a booking.</p></div></div>
       <div class="admin-table-wrap">
@@ -95,6 +127,79 @@
 
   function msg(text){ $('dashboard-message').textContent=text||''; }
   function loginMsg(text){ $('login-message').textContent=text||''; }
+    async function loadReservationControls(){
+    const status = $('reservation-control-status');
+    if(!status)return;
+
+    status.textContent = 'Checking reservation settings…';
+
+    const {data,error} = await supabase.rpc(
+      'get_reservation_status',
+      {p_screening_id:config.screeningId}
+    );
+
+    if(error){
+      console.error(error);
+      status.textContent = 'Unable to read reservation settings: ' + error.message;
+      return;
+    }
+
+    if(data?.override === true){
+      status.textContent = 'MANUALLY OPEN — reservations are open regardless of the automatic cutoff.';
+    }else if(data?.override === false){
+      status.textContent = 'MANUALLY CLOSED — reservations are closed regardless of the automatic cutoff.';
+    }else{
+      status.textContent = data?.is_open
+        ? 'AUTOMATIC — reservations are currently OPEN.'
+        : 'AUTOMATIC — reservations are currently CLOSED.';
+    }
+  }
+
+  async function setReservationMode(mode){
+    const status = $('reservation-control-status');
+
+    const descriptions = {
+      open: 'manually OPEN reservations',
+      close: 'manually CLOSE reservations',
+      automatic: 'return reservations to AUTOMATIC mode'
+    };
+
+    if(!confirm('Are you sure you want to ' + descriptions[mode] + '?'))return;
+
+    status.textContent = 'Updating reservation settings…';
+
+    const p_open = mode === 'automatic'
+      ? null
+      : mode === 'open';
+
+    const {data,error} = await supabase.rpc(
+      'admin_set_reservations',
+      {
+        p_screening_id:config.screeningId,
+        p_open:p_open
+      }
+    );
+
+    if(error){
+      status.textContent = 'Update failed: ' + error.message;
+      return;
+    }
+
+    if(!data?.success){
+      status.textContent = data?.message || 'Update failed.';
+      return;
+    }
+
+    await loadReservationControls();
+
+    msg(
+      mode === 'automatic'
+        ? 'Reservations returned to automatic mode.'
+        : mode === 'open'
+          ? 'Reservations manually opened.'
+          : 'Reservations manually closed.'
+    );
+  }
   function esc(v){ const d=document.createElement('div'); d.textContent=v ?? ''; return d.innerHTML; }
   function money(v){ return '£' + Number(v).toFixed(2); }
   function dateTime(v){ return new Date(v).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
@@ -110,6 +215,7 @@
     msg('Loading…');
     const {data:s,error:se}=await supabase.from('screenings').select('id,film_title,screening_date,start_time,ticket_price,capacity').eq('id',config.screeningId).single();
     if(se){msg(se.message);return;} currentScreening=s;
+    await loadReservationControls();
     const {data,error}=await supabase.from('reservations').select('id,booking_id,seat_id,name,email,phone,created_at').eq('screening_id',config.screeningId).order('created_at',{ascending:true}).order('seat_id',{ascending:true});
     if(error){msg(error.message);return;} reservations=data||[];
     const groups=new Map();
@@ -375,6 +481,9 @@ $('bookings-body').addEventListener('click',e=>{
   $('login-form').addEventListener('submit',async e=>{e.preventDefault();loginMsg('Signing in…');const email=$('email').value.trim().toLowerCase();if(email!==ADMIN_EMAIL){loginMsg('Please use the cinema admin email address.');return;}const {error}=await supabase.auth.signInWithPassword({email,password:$('password').value});if(error){loginMsg(error.message);return;}loginMsg('');await showSession();});
   $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';};
   $('refresh').onclick=loadBookings;
+    $('reservations-open').onclick = () => setReservationMode('open');
+  $('reservations-close').onclick = () => setReservationMode('close');
+  $('reservations-auto').onclick = () => setReservationMode('automatic');
   $('print-cards').onclick=printReservedCards;
   supabase.auth.onAuthStateChange((_event,session)=>{if(session)showSession();}); showSession();
 })();
