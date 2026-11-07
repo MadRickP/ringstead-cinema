@@ -112,19 +112,6 @@
       </p>
     </div>
 
-<div class="admin-card">
-      <div class="admin-top">
-        <div>
-          <h2>Next Film</h2>
-          <p class="admin-note">Prepare the booking system for the next screening.</p>
-        </div>
-        <div class="admin-actions">
-          <button id="reset-next-film" class="admin-btn danger" type="button">Reset for Next Film</button>
-        </div>
-      </div>
-      <p class="admin-note">This clears all reservations for the current screening and resets online reservations to Automatic. The ticket price, capacity and screening time are retained.</p>
-    </div>
-
 <div class="admin-card" id="film-management">
       <div class="admin-top">
         <div>
@@ -135,6 +122,7 @@
           <button id="films-reload" class="admin-btn secondary" type="button">Reload from GitHub</button>
           <button id="films-format" class="admin-btn secondary" type="button">Format JSON</button>
           <button id="films-save" class="admin-btn" type="button">Save Film Information</button>
+          <button id="reset-next-film" class="admin-btn danger" style="margin-left:18px" type="button">Reset Bookings for Current Film</button>
         </div>
       </div>
       <p class="admin-note">This editor works directly with <strong>films.json</strong>. Keep the three top-level sections: <code>current</code>, <code>comingSoon</code> and <code>previousScreenings</code>. Dates must use YYYY-MM-DD. Saving creates a GitHub commit and updates the live site after deployment.</p>
@@ -379,73 +367,55 @@ bookings.forEach(b=>{
   function openModal(html){$('modal-root').innerHTML=`<div class="admin-modal-backdrop"><div class="admin-modal">${html}</div></div>`;$('modal-root').classList.remove('admin-hidden');document.querySelector('.modal-close')?.addEventListener('click',closeModal);document.querySelector('.admin-modal-backdrop')?.addEventListener('click',e=>{if(e.target.classList.contains('admin-modal-backdrop'))closeModal();});}
   function closeModal(){$('modal-root').classList.add('admin-hidden');$('modal-root').innerHTML='';}
 
-  function openResetForNextFilm(){
-    if(!currentScreening){
-      msg('The current screening details have not loaded. Please refresh and try again.');
-      return;
-    }
+  async function openResetForNextFilm(){
+    const resetButton = $('reset-next-film');
+    resetButton.disabled = true;
+    const originalLabel = resetButton.textContent;
+    resetButton.textContent = 'Loading film…';
 
-    const now = new Date();
-    const minDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,10);
+    try{
+      // Always use the latest saved film information from GitHub, not unsaved editor contents.
+      const result = await filmApi('/api/films');
+      const filmData = JSON.parse(result.content);
+      const title = filmData?.current?.title?.trim();
+      const date = filmData?.current?.screeningDate;
 
-    openModal(`
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">Screening rollover</p>
-          <h2>Reset for Next Film</h2>
-          <p class="admin-note">Current screening: ${esc(currentScreening.film_title)}</p>
-        </div>
-        <button class="modal-close" aria-label="Close">×</button>
-      </div>
-      <form id="next-film-form" class="admin-form">
-        <div>
-          <label for="next-film-title">New film title</label>
-          <input id="next-film-title" type="text" maxlength="200" required placeholder="Enter the next film title">
-        </div>
-        <div>
-          <label for="next-film-date">Screening date</label>
-          <input id="next-film-date" type="date" min="${minDate}" required>
-        </div>
-        <div class="admin-actions">
-          <button class="admin-btn" type="submit">Continue</button>
-          <button class="admin-btn secondary" type="button" id="next-film-cancel">Cancel</button>
-        </div>
-        <p id="modal-message" class="admin-message" role="status"></p>
-      </form>
-    `);
-
-    $('next-film-cancel').onclick = closeModal;
-    $('next-film-form').onsubmit = e => {
-      e.preventDefault();
-      const title = $('next-film-title').value.trim();
-      const date = $('next-film-date').value;
-      if(title.length < 2 || !date){
-        $('modal-message').textContent = 'Please enter a film title and screening date.';
-        return;
+      if(!title || !/^\\d{4}-\\d{2}-\\d{2}$/.test(date || '')){
+        throw new Error('The current film in films.json must have a title and a screeningDate in YYYY-MM-DD format.');
       }
 
-      const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB',
+      const [year,month,day] = date.split('-').map(Number);
+      const checkedDate = new Date(year,month-1,day);
+      if(checkedDate.getFullYear()!==year || checkedDate.getMonth()!==month-1 || checkedDate.getDate()!==day){
+        throw new Error('The screening date in films.json is not a valid calendar date.');
+      }
+
+      const formattedDate = checkedDate.toLocaleDateString('en-GB',
         {weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
       openModal(`
         <div class="modal-head">
-          <div><p class="eyebrow">Final confirmation</p><h2>Confirm screening reset</h2></div>
+          <div>
+            <p class="eyebrow">Screening rollover</p>
+            <h2>Reset bookings for current film</h2>
+            <p class="admin-note">Film details read directly from the latest saved films.json on GitHub.</p>
+          </div>
           <button class="modal-close" aria-label="Close">×</button>
         </div>
-        <p>You are about to replace <strong>${esc(currentScreening.film_title)}</strong>
-          with <strong>${esc(title)}</strong> on <strong>${esc(formattedDate)}</strong>.</p>
-        <p><strong>This will permanently delete every reservation for the current screening.</strong>
-          This cannot be undone.</p>
-        <p class="admin-note">The screening time, ticket price and seat capacity will remain unchanged.
-          Reservation control will return to Automatic.</p>
+        <p><strong>New screening details</strong></p>
+        <p style="font-size:1.15rem;margin:.4em 0"><strong>${esc(title)}</strong></p>
+        <p class="admin-note">${esc(formattedDate)}</p>
+        <p>Current booking record: <strong>${esc(currentScreening?.film_title || 'Not loaded')}</strong></p>
+        <p><strong>This will permanently delete every reservation for the current screening</strong> and replace its film title and date with the details shown above. This cannot be undone.</p>
+        <p class="admin-note">The screening time, ticket price and seat capacity will remain unchanged. Reservation control will return to Automatic.</p>
         <div class="admin-actions">
           <button id="confirm-next-film-reset" class="admin-btn danger" type="button">Yes — Delete Reservations and Reset</button>
-          <button id="cancel-next-film-reset" class="admin-btn secondary" type="button">Go Back</button>
+          <button id="cancel-next-film-reset" class="admin-btn secondary" type="button">Cancel</button>
         </div>
         <p id="modal-message" class="admin-message" role="status"></p>
       `);
 
-      $('cancel-next-film-reset').onclick = () => openResetForNextFilm();
+      $('cancel-next-film-reset').onclick = closeModal;
       $('confirm-next-film-reset').onclick = async () => {
         const button = $('confirm-next-film-reset');
         button.disabled = true;
@@ -474,7 +444,12 @@ bookings.forEach(b=>{
         await loadBookings();
         msg(`Screening reset successfully for ${title} on ${formattedDate}. ${data.reservations_deleted ?? 0} reservations deleted.`);
       };
-    };
+    }catch(error){
+      msg('Could not prepare screening reset: ' + error.message);
+    }finally{
+      resetButton.disabled = false;
+      resetButton.textContent = originalLabel;
+    }
   }
 
   function openEdit(id){
