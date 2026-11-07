@@ -67,7 +67,7 @@
   function renderRecent(films) {
     const target = document.querySelector('[data-recent-films]');
     if (!target) return;
-    target.innerHTML = films.slice(0, 3).map(film => `
+    target.innerHTML = [...films].sort((a, b) => b.screeningDate.localeCompare(a.screeningDate)).slice(0, 3).map(film => `
       <a class="past-card" href="past-films.html#${esc(film.id)}">
         <img src="${esc(film.poster)}" alt="${esc(film.posterAlt || (film.title + ' poster'))}">
         <span><strong>${esc(film.title)}</strong><small>${esc(film.month)}</small></span>
@@ -77,7 +77,7 @@
   function renderArchive(films) {
     const target = document.querySelector('[data-archive-films]');
     if (!target) return;
-    target.innerHTML = films.map(film => `
+    target.innerHTML = [...films].sort((a, b) => b.screeningDate.localeCompare(a.screeningDate)).map(film => `
       <article id="${esc(film.id)}" class="archive-card">
         <img src="${esc(film.poster)}" alt="${esc(film.posterAlt || (film.title + ' poster'))}">
         <div><span class="eyebrow">${esc(film.month)}</span><h2>${esc(film.title)}</h2>
