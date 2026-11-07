@@ -3,6 +3,8 @@ const SITE_ORIGIN = "https://ringstead-cinema.pages.dev";
 const GITHUB_REPOSITORY = "MadRickP/ringstead-cinema";
 const GITHUB_BRANCH = "main";
 const FILMS_PATH = "films.json";
+const SUPABASE_URL = "https://tntzppzwkrwohvtpoxvf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable__QiKh2LA9dtycAE42t1N5A_otDc3pLS";
 
 function response(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -15,7 +17,10 @@ function response(body, status = 200) {
 }
 
 function allowedOrigin(request) {
-  return request.headers.get("Origin") === SITE_ORIGIN;
+  const origin = request.headers.get("Origin");
+  if (origin) return origin === SITE_ORIGIN;
+  const referer = request.headers.get("Referer") || "";
+  return referer.startsWith(SITE_ORIGIN + "/");
 }
 
 async function authorisedUser(request, env) {
@@ -23,11 +28,11 @@ async function authorisedUser(request, env) {
   if (!header.startsWith("Bearer ")) return null;
 
   const token = header.slice(7);
-  if (!token || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null;
+  if (!token) return null;
 
-  const result = await fetch(env.SUPABASE_URL + "/auth/v1/user", {
+  const result = await fetch(SUPABASE_URL + "/auth/v1/user", {
     headers: {
-      "apikey": env.SUPABASE_ANON_KEY,
+      "apikey": SUPABASE_ANON_KEY,
       "Authorization": "Bearer " + token
     }
   });
