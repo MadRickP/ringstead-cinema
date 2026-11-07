@@ -1,0 +1,62 @@
+{
+  "current": {
+    "id": "midwinter-break",
+    "title": "Midwinter Break",
+    "screeningDate": "2026-12-04",
+    "screeningTime": "7:30pm",
+    "poster": "assets/midwinter-break-poster.png",
+    "posterAlt": "Midwinter Break poster",
+    "rating": "12A",
+    "year": "2026",
+    "genre": "Drama",
+    "runtime": "90 mins",
+    "synopsis": "A stirring meditation on faith, commitment, and the enduring power of love, as a longtime couple takes a life-changing trip to Amsterdam. Starring Ciarán Hinds, Lesley Manville and Ed Sayer.",
+    "trailerEmbed": "https://www.youtube-nocookie.com/embed/FeD_KEGIU_Q?rel=0",
+    "trailerUrl": "https://www.focusfeatures.com/video/midwinter-break-official-trailer",
+    "trailerSource": "Focus Features"
+  },
+  "comingSoon": {
+    "id": "how-to-make-a-killing",
+    "title": "How to Make a Killing",
+    "screeningDate": "2027-01-08",
+    "screeningTime": "7:30pm",
+    "rating": "15",
+    "year": "2026",
+    "runtime": "105 mins",
+    "synopsis": "Disowned at birth by his obscenely wealthy family, blue-collar Becket Redfellow (Glen Powell) will stop at nothing to reclaim his inheritance, no matter how many relatives stand in his way.",
+    "director": "John Patton Ford",
+    "cast": "Glen Powell, Margaret Qualley, Ed Harris",
+    "distributor": "StudioCanal",
+    "trailerEmbed": "https://www.youtube-nocookie.com/embed/zMKGDTY5Vwo?rel=0",
+    "trailerUrl": "https://www.youtube.com/watch?v=zMKGDTY5Vwo",
+    "trailerSource": "YouTube"
+  },
+  "previousScreenings": [
+    {
+      "id": "holy-days",
+      "title": "Holy Days",
+      "month": "November 2026",
+      "poster": "assets/holy-days-poster.jpg",
+      "posterAlt": "Holy Days poster",
+      "genre": "Comedy / Drama"
+    },
+    {
+      "id": "prada",
+      "title": "The Devil Wears Prada 2",
+      "month": "October 2026",
+      "poster": "assets/devil-wears-prada-2.png",
+      "posterAlt": "The Devil Wears Prada 2 poster",
+      "genre": "Comedy / Drama",
+      "informationUrl": "https://www.thedevilwearsprada.co.uk/synopsis/"
+    },
+    {
+      "id": "hamnet",
+      "title": "Hamnet",
+      "month": "September 2026",
+      "poster": "assets/hamnet-poster.jpg",
+      "posterAlt": "Hamnet poster",
+      "genre": "Drama",
+      "informationUrl": "https://www.focusfeatures.com/hamnet"
+    }
+  ]
+}
