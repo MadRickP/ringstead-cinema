@@ -2,13 +2,15 @@
   "current": {
     "id": "midwinter-break",
     "title": "Midwinter Break",
-    "screeningDate": "2026-12-04",
-    "screeningTime": "7:30pm",
+    "month": "December 2026",
     "poster": "assets/midwinter-break-poster.png",
     "posterAlt": "Midwinter Break poster",
+    "genre": "Drama",
+    "informationUrl": "",
+    "screeningDate": "2026-12-04",
+    "screeningTime": "7:30pm",
     "rating": "12A",
     "year": "2026",
-    "genre": "Drama",
     "runtime": "90 mins",
     "synopsis": "A stirring meditation on faith, commitment, and the enduring power of love, as a longtime couple takes a life-changing trip to Amsterdam. Starring Ciarán Hinds, Lesley Manville and Ed Sayer. ",
     "trailerEmbed": "https://www.youtube-nocookie.com/embed/FeD_KEGIU_Q?rel=0",
@@ -18,6 +20,11 @@
   "comingSoon": {
     "id": "how-to-make-a-killing",
     "title": "How to Make a Killing",
+    "month": "January 2027",
+    "poster": "",
+    "posterAlt": "How to Make a Killing poster",
+    "genre": "",
+    "informationUrl": "",
     "screeningDate": "2027-01-08",
     "screeningTime": "7:30pm",
     "rating": "15",
@@ -39,6 +46,7 @@
       "poster": "assets/holy-days-poster.jpg",
       "posterAlt": "Holy Days poster",
       "genre": "Comedy / Drama",
+      "informationUrl": "",
       "screeningDate": "2026-11-06"
     },
     {
