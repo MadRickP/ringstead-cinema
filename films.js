@@ -39,8 +39,9 @@
     setAttr('[data-current-poster]', 'src', film.poster);
     setAttr('[data-current-poster]', 'alt', film.posterAlt || (film.title + ' poster'));
     trailer(film, 'current');
+    if (document.querySelector('[data-current-page-title]')) document.title = film.title + ' — Ringstead Cinema';
     const description = document.querySelector('meta[name="description"]');
-    if (description) description.content = film.title + ' at Ringstead Cinema, ' + dateLong(film.screeningDate) + ' at ' + film.screeningTime + '.';
+    if (description && document.querySelector('[data-current-title]')) description.content = film.title + ' at Ringstead Cinema, ' + dateLong(film.screeningDate) + ' at ' + film.screeningTime + '.';
   }
 
   function renderComing(film) {
