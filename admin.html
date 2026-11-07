@@ -70,19 +70,15 @@
       <div class="admin-stat"><strong id="income-count">—</strong><span>expected at door</span></div>
     </div>
     <div class="admin-card">
-      <div class="admin-top">
-        <div>
-          <h2>Next Film</h2>
-          <p class="admin-note">Prepare the booking system for the next screening.</p>
-        </div>
-        <div class="admin-actions">
-          <button id="reset-next-film" class="admin-btn danger" type="button">Reset for Next Film</button>
-        </div>
+      <div class="admin-top"><div><h2>Bookings</h2><p class="admin-note">Manage customer details, move seats or cancel a booking.</p></div></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table"><thead><tr><th>Seats</th><th>Customer</th><th>Contact</th><th>Booked</th><th>Actions</th></tr></thead>
+        <tbody id="bookings-body"><tr><td colspan="5">Loading…</td></tr></tbody></table>
       </div>
-      <p class="admin-note">This clears all reservations for the current screening and resets online reservations to Automatic. The ticket price, capacity and screening time are retained.</p>
+      <p id="dashboard-message" class="admin-message" role="status"></p>
     </div>
 
-    <div class="admin-card">
+<div class="admin-card">
       <div class="admin-top">
         <div>
           <h2>Online Reservations</h2>
@@ -115,7 +111,21 @@
         of the screening.
       </p>
     </div>
-    <div class="admin-card" id="film-management">
+
+<div class="admin-card">
+      <div class="admin-top">
+        <div>
+          <h2>Next Film</h2>
+          <p class="admin-note">Prepare the booking system for the next screening.</p>
+        </div>
+        <div class="admin-actions">
+          <button id="reset-next-film" class="admin-btn danger" type="button">Reset for Next Film</button>
+        </div>
+      </div>
+      <p class="admin-note">This clears all reservations for the current screening and resets online reservations to Automatic. The ticket price, capacity and screening time are retained.</p>
+    </div>
+
+<div class="admin-card" id="film-management">
       <div class="admin-top">
         <div>
           <h2>Film Management</h2>
@@ -134,14 +144,6 @@
       <p class="admin-note">A copy of the previous version remains in GitHub history if you ever need to restore it. Poster image files are not uploaded by this editor; their paths can be entered here once the image has been added to the assets folder.</p>
     </div>
 
-    <div class="admin-card">
-      <div class="admin-top"><div><h2>Bookings</h2><p class="admin-note">Manage customer details, move seats or cancel a booking.</p></div></div>
-      <div class="admin-table-wrap">
-        <table class="admin-table"><thead><tr><th>Seats</th><th>Customer</th><th>Contact</th><th>Booked</th><th>Actions</th></tr></thead>
-        <tbody id="bookings-body"><tr><td colspan="5">Loading…</td></tr></tbody></table>
-      </div>
-      <p id="dashboard-message" class="admin-message" role="status"></p>
-    </div>
   </section>
 </main>
 
