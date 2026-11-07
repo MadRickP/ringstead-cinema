@@ -131,15 +131,19 @@ export async function onRequestGet({ request, env }) {
   const user = await authorisedUser(request, env);
   if (!user) return response({ error: "Your admin session is invalid or not authorised. Please sign in again." }, 401);
 
+  if (!env.GITHUB_TOKEN) {
+    return response({
+      error: "The GitHub access token has not yet been added to Cloudflare. Add it as the GITHUB_TOKEN secret, then try again."
+    }, 503);
+  }
+
   const result = await githubRequest(env, "GET");
   if (!result.ok) {
     const detail = await result.json().catch(() => ({}));
+    const githubMessage = detail.message || result.statusText || "Unknown GitHub error";
     return response({
-      error: result.status === 404
-        ? "films.json could not be found in the GitHub repository."
-        : "Unable to read films.json from GitHub.",
-      detail: detail.message || result.statusText
-    }, result.status === 404 ? 404 : 502);
+      error: "GitHub could not read films.json (HTTP " + result.status + "): " + githubMessage
+    }, 502);
   }
 
   const file = await result.json();
