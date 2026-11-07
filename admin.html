@@ -12,6 +12,9 @@
     .admin-form{display:grid;gap:14px}.admin-form label{font-size:.9rem;color:#d8d2c6}
     .admin-form input{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:#111722;color:#f4efe5;font:inherit}
     .admin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .film-management-actions{flex:1;justify-content:flex-end;gap:8px}
+    .film-management-reset{margin-left:24px!important}
+    @media(max-width:750px){.film-management-actions{flex:0 0 100%;justify-content:flex-start}.film-management-reset{margin-left:0!important}}
     .admin-btn{border:0;border-radius:999px;padding:10px 16px;background:#c9a55b;color:#111722;font-weight:700;cursor:pointer}
     .admin-btn.secondary{background:transparent;color:#f4efe5;border:1px solid rgba(255,255,255,.2)}
     .admin-btn.danger{background:#7f3535;color:#fff}.admin-btn.small{padding:7px 11px;font-size:.85rem}
@@ -118,11 +121,11 @@
           <h2>Film Management</h2>
           <p class="admin-note">Edit the central film information used by the website. Changes here do not alter bookings or the screening database.</p>
         </div>
-        <div class="admin-actions">
+        <div class="admin-actions film-management-actions">
           <button id="films-reload" class="admin-btn secondary" type="button">Reload from GitHub</button>
           <button id="films-format" class="admin-btn secondary" type="button">Format JSON</button>
           <button id="films-save" class="admin-btn" type="button">Save Film Information</button>
-          <button id="reset-next-film" class="admin-btn danger" style="margin-left:auto" type="button">Reset Bookings for Current Film</button>
+          <button id="reset-next-film" class="admin-btn danger film-management-reset" type="button">Reset Bookings for Current Film</button>
         </div>
       </div>
       <p class="admin-note">This editor works directly with <strong>films.json</strong>. Keep the three top-level sections: <code>current</code>, <code>comingSoon</code> and <code>previousScreenings</code>. Dates must use YYYY-MM-DD. Saving creates a GitHub commit and updates the live site after deployment.</p>
