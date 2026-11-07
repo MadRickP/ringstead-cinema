@@ -45,7 +45,7 @@ async function authorisedUser(request, env) {
 
 async function githubRequest(env, method, body) {
   if (!env.GITHUB_TOKEN) {
-    return { ok: false, status: 503, message: "The GitHub access secret has not been configured in Cloudflare yet." };
+    return new Response(JSON.stringify({ message: "The GitHub access secret has not been configured in Cloudflare yet." }), { status: 503, headers: { "Content-Type": "application/json" } });
   }
 
   const url = "https://api.github.com/repos/" + GITHUB_REPOSITORY +
