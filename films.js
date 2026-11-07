@@ -9,8 +9,8 @@
     month:'long', year:'numeric'
   }).format(new Date(value + 'T12:00:00'));
   const setText = (selector, value) => {
-    const el = document.querySelector(selector);
-    if (el && value != null) el.textContent = value;
+    if (value == null) return;
+    document.querySelectorAll(selector).forEach(el => { el.textContent = value; });
   };
   const setAttr = (selector, name, value) => {
     const el = document.querySelector(selector);
