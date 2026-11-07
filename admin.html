@@ -35,6 +35,7 @@
     .admin-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:#111722;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:24px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
     .modal-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.modal-close{border:0;background:none;color:#eee;font-size:1.6rem;cursor:pointer}
     .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.modal-grid .full{grid-column:1/-1}
+    .film-json-editor{display:block;width:100%;min-height:520px;box-sizing:border-box;padding:16px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#0b1018;color:#f4efe5;font:13px/1.55 Consolas,'Courier New',monospace;tab-size:2;resize:vertical;white-space:pre;overflow:auto}.film-json-editor:focus{outline:2px solid #c9a55b;outline-offset:2px}
     @media(max-width:750px){.admin-stats{grid-template-columns:1fr 1fr}.modal-grid{grid-template-columns:1fr}.modal-grid .full{grid-column:auto}}
     @media(max-width:500px){.admin-stats{grid-template-columns:1fr}.admin-wrap{padding-top:25px}.admin-card{padding:18px}.seat-admin{gap:5px}.seat-admin button{font-size:.78rem}}
   </style>
@@ -114,6 +115,25 @@
         of the screening.
       </p>
     </div>
+    <div class="admin-card" id="film-management">
+      <div class="admin-top">
+        <div>
+          <h2>Film Management</h2>
+          <p class="admin-note">Edit the central film information used by the website. Changes here do not alter bookings or the screening database.</p>
+        </div>
+        <div class="admin-actions">
+          <button id="films-reload" class="admin-btn secondary" type="button">Reload from GitHub</button>
+          <button id="films-format" class="admin-btn secondary" type="button">Format JSON</button>
+          <button id="films-save" class="admin-btn" type="button">Save Film Information</button>
+        </div>
+      </div>
+      <p class="admin-note">This editor works directly with <strong>films.json</strong>. Keep the three top-level sections: <code>current</code>, <code>comingSoon</code> and <code>previousScreenings</code>. Dates must use YYYY-MM-DD. Saving creates a GitHub commit and updates the live site after deployment.</p>
+      <label for="films-json-editor" style="display:block;margin:16px 0 8px;color:#d8d2c6">Film data (JSON)</label>
+      <textarea id="films-json-editor" spellcheck="false" autocapitalize="off" autocomplete="off" class="film-json-editor" placeholder="Loading film information…"></textarea>
+      <p id="films-message" class="admin-message" role="status">Loading film information…</p>
+      <p class="admin-note">A copy of the previous version remains in GitHub history if you ever need to restore it. Poster image files are not uploaded by this editor; their paths can be entered here once the image has been added to the assets folder.</p>
+    </div>
+
     <div class="admin-card">
       <div class="admin-top"><div><h2>Bookings</h2><p class="admin-note">Manage customer details, move seats or cancel a booking.</p></div></div>
       <div class="admin-table-wrap">
@@ -137,9 +157,79 @@
   let currentScreening = null;
   let reservations = [];
   let bookings = [];
+  let filmsSha = null;
+  let filmsDirty = false;
 
   function msg(text){ $('dashboard-message').textContent=text||''; }
   function loginMsg(text){ $('login-message').textContent=text||''; }
+  function filmMessage(text){ $('films-message').textContent=text||''; }
+  function filmEditorChanged(){ filmsDirty=true; filmMessage('Unsaved changes.'); }
+  async function filmApi(url, options = {}){
+    const {data:{session}} = await supabase.auth.getSession();
+    if(!session?.access_token) throw new Error('Your admin session has expired. Please sign in again.');
+    const headers = {
+      'Authorization':'Bearer '+session.access_token,
+      ...(options.body ? {'Content-Type':'application/json'} : {}),
+      ...(options.headers || {})
+    };
+    const response = await fetch(url,{...options,headers});
+    const result = await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error || result.message || 'Film data request failed ('+response.status+').');
+    return result;
+  }
+  async function loadFilmData(force = false){
+    if(filmsDirty && !force && !confirm('Discard your unsaved film edits and reload the version from GitHub?')) return;
+    filmMessage('Loading films.json from GitHub…');
+    $('films-reload').disabled=true;
+    try{
+      const result=await filmApi('/api/films');
+      $('films-json-editor').value=JSON.stringify(JSON.parse(result.content),null,2);
+      filmsSha=result.sha;
+      filmsDirty=false;
+      filmMessage('Loaded successfully from GitHub. You can now edit the film data.');
+    }catch(error){
+      filmMessage('Could not load film information: '+error.message);
+    }finally{
+      $('films-reload').disabled=false;
+    }
+  }
+  function formatFilmJson(){
+    try{
+      const data=JSON.parse($('films-json-editor').value);
+      $('films-json-editor').value=JSON.stringify(data,null,2);
+      filmsDirty=true;
+      filmMessage('JSON formatted. Remember to save your changes.');
+    }catch(error){
+      filmMessage('JSON error: '+error.message);
+    }
+  }
+  async function saveFilmData(){
+    const button=$('films-save');
+    let parsed;
+    try{parsed=JSON.parse($('films-json-editor').value);}
+    catch(error){filmMessage('Cannot save: JSON syntax error — '+error.message);return;}
+    if(!filmsSha){filmMessage('Load the latest version from GitHub before saving.');return;}
+    if(!confirm('Save these changes to films.json on GitHub?\n\nThis updates film information on the website but does not change any reservations.'))return;
+    button.disabled=true;
+    button.textContent='Saving…';
+    filmMessage('Checking and saving film information…');
+    try{
+      const result=await filmApi('/api/films',{
+        method:'POST',
+        body:JSON.stringify({content:JSON.stringify(parsed,null,2)+'\n',sha:filmsSha})
+      });
+      filmsSha=result.sha;
+      $('films-json-editor').value=JSON.stringify(parsed,null,2);
+      filmsDirty=false;
+      filmMessage('Saved to GitHub successfully. The website will update when Cloudflare finishes deploying the commit.');
+    }catch(error){
+      filmMessage('Save failed: '+error.message);
+    }finally{
+      button.disabled=false;
+      button.textContent='Save Film Information';
+    }
+  }
+
     async function loadReservationControls(){
     const status = $('reservation-control-status');
     if(!status)return;
@@ -220,7 +310,7 @@
   async function showSession(){
     const {data:{session}}=await supabase.auth.getSession();
     if(session && session.user?.email?.toLowerCase()===ADMIN_EMAIL){
-      $('login-card').classList.add('admin-hidden'); $('dashboard').classList.remove('admin-hidden'); await loadBookings();
+      $('login-card').classList.add('admin-hidden'); $('dashboard').classList.remove('admin-hidden'); await loadBookings(); await loadFilmData(true);
     } else if(session){ await supabase.auth.signOut(); loginMsg('This account is not authorised for the cinema admin area.'); }
   }
 
@@ -592,6 +682,10 @@ $('bookings-body').addEventListener('click',e=>{
   $('login-form').addEventListener('submit',async e=>{e.preventDefault();loginMsg('Signing in…');const email=$('email').value.trim().toLowerCase();if(email!==ADMIN_EMAIL){loginMsg('Please use the cinema admin email address.');return;}const {error}=await supabase.auth.signInWithPassword({email,password:$('password').value});if(error){loginMsg(error.message);return;}loginMsg('');await showSession();});
   $('signout').onclick=async()=>{await supabase.auth.signOut();$('dashboard').classList.add('admin-hidden');$('login-card').classList.remove('admin-hidden');$('password').value='';};
   $('refresh').onclick=loadBookings;
+  $('films-reload').onclick=()=>loadFilmData(false);
+  $('films-format').onclick=formatFilmJson;
+  $('films-save').onclick=saveFilmData;
+  $('films-json-editor').addEventListener('input',filmEditorChanged);
   $('reset-next-film').onclick=openResetForNextFilm;
     $('reservations-open').onclick = () => setReservationMode('open');
   $('reservations-close').onclick = () => setReservationMode('close');
