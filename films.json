@@ -38,7 +38,8 @@
       "month": "November 2026",
       "poster": "assets/holy-days-poster.jpg",
       "posterAlt": "Holy Days poster",
-      "genre": "Comedy / Drama"
+      "genre": "Comedy / Drama",
+      "screeningDate": "2026-11-06"
     },
     {
       "id": "prada",
@@ -47,7 +48,8 @@
       "poster": "assets/devil-wears-prada-2.png",
       "posterAlt": "The Devil Wears Prada 2 poster",
       "genre": "Comedy / Drama",
-      "informationUrl": "https://www.thedevilwearsprada.co.uk/synopsis/"
+      "informationUrl": "https://www.thedevilwearsprada.co.uk/synopsis/",
+      "screeningDate": "2026-10-02"
     },
     {
       "id": "hamnet",
@@ -56,7 +58,8 @@
       "poster": "assets/hamnet-poster.jpg",
       "posterAlt": "Hamnet poster",
       "genre": "Drama",
-      "informationUrl": "https://www.focusfeatures.com/hamnet"
+      "informationUrl": "https://www.focusfeatures.com/hamnet",
+      "screeningDate": "2026-09-04"
     }
   ]
 }
