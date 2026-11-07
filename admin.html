@@ -122,7 +122,7 @@
           <button id="films-reload" class="admin-btn secondary" type="button">Reload from GitHub</button>
           <button id="films-format" class="admin-btn secondary" type="button">Format JSON</button>
           <button id="films-save" class="admin-btn" type="button">Save Film Information</button>
-          <button id="reset-next-film" class="admin-btn danger" style="margin-left:18px" type="button">Reset Bookings for Current Film</button>
+          <button id="reset-next-film" class="admin-btn danger" style="margin-left:auto" type="button">Reset Bookings for Current Film</button>
         </div>
       </div>
       <p class="admin-note">This editor works directly with <strong>films.json</strong>. Keep the three top-level sections: <code>current</code>, <code>comingSoon</code> and <code>previousScreenings</code>. Dates must use YYYY-MM-DD. Saving creates a GitHub commit and updates the live site after deployment.</p>
@@ -380,7 +380,7 @@ bookings.forEach(b=>{
       const title = filmData?.current?.title?.trim();
       const date = filmData?.current?.screeningDate;
 
-      if(!title || !/^\\d{4}-\\d{2}-\\d{2}$/.test(date || '')){
+      if(!title || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')){
         throw new Error('The current film in films.json must have a title and a screeningDate in YYYY-MM-DD format.');
       }
 
