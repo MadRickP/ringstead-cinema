@@ -192,6 +192,7 @@
   async function uploadAsset(file){
     const button=$('asset-upload-button');
     if(!file)return;
+    filmMessage('File selected: '+file.name+' ('+(file.size/1024/1024).toFixed(2)+' MB). Checking upload…');
 
     const allowedTypes=['image/jpeg','image/png','image/webp','image/gif'];
     const allowedExtensions=/\.(jpe?g|png|webp|gif)$/i;
