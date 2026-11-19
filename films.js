@@ -55,6 +55,8 @@
     setText('[data-coming-director]', film.director);
     setText('[data-coming-cast]', film.cast);
     setText('[data-coming-distributor]', film.distributor);
+    setAttr('[data-coming-poster]', 'src', film.poster);
+    setAttr('[data-coming-poster]', 'alt', film.posterAlt || (film.title + ' poster'));
     trailer(film, 'coming');
     const infoTitle = document.querySelector('[data-coming-page-title]');
     if (infoTitle) document.title = film.title + ' — Coming Soon at Ringstead Cinema';
