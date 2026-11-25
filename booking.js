@@ -271,7 +271,8 @@
                   'apikey': config.supabaseAnonKey
                 },
                 body: JSON.stringify({
-                  booking_id: bookingId
+                  booking_id: bookingId,
+                  notify_admin: true
                 })
               }
             );
@@ -282,6 +283,12 @@
               console.error(
                 'Booking confirmation email failed:',
                 emailResult
+              );
+            }
+            if (emailResult?.admin_notification_error) {
+              console.error(
+                'Cinema booking notification failed:',
+                emailResult.admin_notification_error
               );
             }
           } catch (emailError) {
