@@ -22,8 +22,14 @@ create table if not exists public.reservations (
   email text not null,
   phone text not null,
   created_at timestamptz not null default now(),
+  admin_notification_sent_at timestamptz,
   unique(screening_id,seat_id)
 );
+
+-- Track whether the separate cinema booking notification has been sent.
+-- This also upgrades an existing reservations table safely when this schema is re-run.
+alter table public.reservations
+  add column if not exists admin_notification_sent_at timestamptz;
 
 alter table public.screenings enable row level security;
 alter table public.reservations enable row level security;
